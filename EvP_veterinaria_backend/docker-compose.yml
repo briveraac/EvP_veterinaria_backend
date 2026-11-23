@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16
+    container_name: veterinaria-db
+    environment:
+      POSTGRES_DB: veterinaria
+      POSTGRES_USER: vet
+      POSTGRES_PASSWORD: vet123
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vet -d veterinaria"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: veterinaria-backend
+    ports:
+      - "8080:8080"
+    environment:
+      # Activa application-docker.properties (PostgreSQL)
+      SPRING_PROFILES_ACTIVE: docker
+      # Dentro de Docker la BD se llama "db" (nombre del servicio), no localhost
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/veterinaria
+      SPRING_DATASOURCE_USERNAME: vet
+      SPRING_DATASOURCE_PASSWORD: vet123
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
