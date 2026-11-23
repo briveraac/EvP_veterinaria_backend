@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 // Endpoints:
-// GET    /api/citas       -> lista todas las citas
-// GET    /api/citas/{id}  -> busca una cita
-// POST   /api/citas       -> crea una cita
-// PUT    /api/citas/{id}  -> actualiza una cita
-// DELETE /api/citas/{id}  -> elimina una cita
+// GET    /api/v1/citas       -> lista todas las citas
+// GET    /api/v1/citas/{id}  -> busca una cita
+// POST   /api/v1/citas       -> crea una cita
+// PUT    /api/v1/citas/{id}  -> actualiza una cita
+// DELETE /api/v1/citas/{id}  -> elimina una cita
 @RestController
 @RequestMapping("/api/v1/citas")
 public class CitaController {

@@ -2,7 +2,7 @@
 
 API REST hecha con Spring Boot para las citas de la veterinaria.
 
-El frontend (React + Vite) está en otro repositorio: `EvP_veterinaria`. Se conectan por HTTP: el frontend llama a `http://localhost:8080/api/citas`.
+El frontend (React + Vite) está en otro repositorio: `EvP_veterinaria`. Se conectan por HTTP: el frontend llama a `http://localhost:8080/api/v1/citas`.
 
 ## Requisitos
 
@@ -31,11 +31,11 @@ El servidor queda en `http://localhost:8080`.
 
 | Método | Ruta | Qué hace |
 | --- | --- | --- |
-| GET | `/api/citas` | Lista todas las citas |
-| GET | `/api/citas/{id}` | Busca una cita |
-| POST | `/api/citas` | Crea una cita |
-| PUT | `/api/citas/{id}` | Actualiza una cita |
-| DELETE | `/api/citas/{id}` | Elimina una cita |
+| GET | `/api/v1/citas` | Lista todas las citas |
+| GET | `/api/v1/citas/{id}` | Busca una cita |
+| POST | `/api/v1/citas` | Crea una cita |
+| PUT | `/api/v1/citas/{id}` | Actualiza una cita |
+| DELETE | `/api/v1/citas/{id}` | Elimina una cita |
 
 Ejemplo de cita en JSON:
 
