@@ -23,7 +23,7 @@ import java.util.List;
 // PUT    /api/citas/{id}  -> actualiza una cita
 // DELETE /api/citas/{id}  -> elimina una cita
 @RestController
-@RequestMapping("/api/citas")
+@RequestMapping("/api/v1/citas")
 public class CitaController {
 
     @Autowired
