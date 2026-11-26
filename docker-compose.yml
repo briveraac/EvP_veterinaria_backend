@@ -5,9 +5,11 @@ services:
     environment:
       POSTGRES_DB: veterinaria
       POSTGRES_USER: vet
-      POSTGRES_PASSWORD: vet123
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vet123}
+    # No publicamos el puerto 5432: el backend llega a la BD por la red interna de Docker.
+    # Si quieres verla con pgAdmin en tu PC, descomenta estas dos lineas:
+    # ports:
+    #   - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -27,10 +29,15 @@ services:
       # Dentro de Docker la BD se llama "db" (nombre del servicio), no localhost
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/veterinaria
       SPRING_DATASOURCE_USERNAME: vet
-      SPRING_DATASOURCE_PASSWORD: vet123
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-vet123}
+      # Clave para firmar los JWT. En AWS se cambia en un archivo .env (ver README).
+      JWT_SECRETO: ${JWT_SECRETO:-clave-de-desarrollo-veterinaria-san-marcos-2026}
+      # Origenes permitidos por CORS. En AWS se agrega http://IP_PUBLICA
+      CORS_ORIGENES: ${CORS_ORIGENES:-http://localhost:5173,http://localhost:4173,https://briveraac.github.io}
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   db_data:

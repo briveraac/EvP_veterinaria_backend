@@ -18,6 +18,18 @@ public class ManejadorErrores {
         return Map.of("mensaje", error.getMessage());
     }
 
+    @ExceptionHandler(UsuarioNoEncontradoException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> usuarioNoEncontrado(UsuarioNoEncontradoException error) {
+        return Map.of("mensaje", error.getMessage());
+    }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> credencialesInvalidas(CredencialesInvalidasException error) {
+        return Map.of("mensaje", error.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> datosInvalidos(IllegalArgumentException error) {
