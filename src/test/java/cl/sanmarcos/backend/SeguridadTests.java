@@ -9,7 +9,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,11 +90,70 @@ class SeguridadTests {
                 .andExpect(status().isForbidden());
     }
 
+    // Proxima fecha que cae en ese dia de la semana (siempre en el futuro).
+    private String proximo(DayOfWeek dia) {
+        return LocalDate.now(ZoneId.of("America/Santiago")).plusWeeks(1).with(TemporalAdjusters.nextOrSame(dia)).toString();
+    }
+
+    private String citaJson(String fecha, String hora) {
+        return "{\"pet\":\"Toby\",\"species\":\"Perro\",\"owner\":\"Ana Rojas\",\"service\":\"Consulta general\","
+                + "\"date\":\"" + fecha + "\",\"time\":\"" + hora + "\",\"vet\":\"Dra. Paula Fuentes\"}";
+    }
+
+    @Test
+    void noPermiteFechasPasadasNiFueraDeHorario() throws Exception {
+        String token = login("brun.rivera@duocuc.cl");
+        String ayer = LocalDate.now(ZoneId.of("America/Santiago")).minusDays(1).toString();
+
+        // Fecha pasada
+        mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(citaJson(ayer, "10:00")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("No se puede agendar una cita en una fecha u hora que ya pasó."));
+
+        // Domingo
+        mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(citaJson(proximo(DayOfWeek.SUNDAY), "11:00")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("Los domingos la clínica está cerrada."));
+
+        // Lunes a las 20:00 (cierra 19:30) y a las 08:00 (abre 09:00)
+        mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(citaJson(proximo(DayOfWeek.MONDAY), "20:00")))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(citaJson(proximo(DayOfWeek.MONDAY), "08:00")))
+                .andExpect(status().isBadRequest());
+
+        // Sabado a las 16:00 (cierra 15:00)
+        mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(citaJson(proximo(DayOfWeek.SATURDAY), "16:00")))
+                .andExpect(status().isBadRequest());
+
+        // Sabado a las 10:00 si se puede
+        mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(citaJson(proximo(DayOfWeek.SATURDAY), "10:00")))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void sePuedeCompletarUnaCitaSinCambiarSuFecha() throws Exception {
+        // La cita 1 de data.sql es de hoy a las 09:00 (puede que ya haya pasado).
+        // Cambiar solo el estado no debe revisar el horario.
+        String token = login("brun.rivera@duocuc.cl");
+        String fecha = LocalDate.now().toString();
+        String cita = "{\"pet\":\"Luna\",\"species\":\"Perro\",\"owner\":\"Francisca Muñoz\",\"service\":\"Consulta general\","
+                + "\"date\":\"" + fecha + "\",\"time\":\"09:00\",\"vet\":\"Dra. Sofía Herrera\",\"status\":\"Completada\"}";
+        mockMvc.perform(put("/api/v1/citas/1").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(cita))
+                .andExpect(status().isOk());
+    }
+
     @Test
     void crearCitaYDetectarChoqueDeHorario() throws Exception {
         String token = login("brun.rivera@duocuc.cl");
         String cita = "{\"pet\":\"Toby\",\"species\":\"Perro\",\"owner\":\"Ana Rojas\",\"service\":\"Consulta general\","
-                + "\"date\":\"2099-01-01\",\"time\":\"10:00\",\"vet\":\"Dr. Nicolás Vega\"}";
+                + "\"date\":\"" + proximo(DayOfWeek.TUESDAY) + "\",\"time\":\"10:00\",\"vet\":\"Dr. Nicolás Vega\"}";
 
         mockMvc.perform(post("/api/v1/citas").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON).content(cita))

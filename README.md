@@ -100,7 +100,7 @@ La clave para firmar está en `application.properties` (`jwt.secreto`) y se pued
 
 - `model/`: entidades JPA `Cita` (tabla `citas`) y `Usuario` (tabla `usuarios`).
 - `repository/`: acceso a la base de datos con `JpaRepository`.
-- `service/CitaService.java`: datos obligatorios y que un veterinario no tenga dos citas a la misma hora.
+- `service/CitaService.java`: datos obligatorios, que un veterinario no tenga dos citas a la misma hora, que no se agende en el pasado y que la cita esté dentro del horario de atención (lunes a viernes 09:00-19:30, sábado 10:00-15:00, domingo cerrado).
 - `service/UsuarioService.java`: login, correos únicos, contraseñas con BCrypt y que siempre quede un administrador activo.
 - `controller/`: endpoints REST (`AuthController`, `CitaController`, `UsuarioController`), documentados con anotaciones de Swagger.
 - `security/`: `JwtUtil` (crear y leer tokens) y `JwtFiltro` (revisa el token en cada petición).
